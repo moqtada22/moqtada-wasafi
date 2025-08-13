@@ -1,62 +1,154 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        text-align: center;
+    }
+    .box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 300px;
+        margin: 50px auto;
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    }
+    input {
+        width: 90%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    button {
+        width: 95%;
+        padding: 10px;
+        background: green;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: darkgreen;
+    }
+    a {
+        display: block;
+        margin-top: 10px;
+        color: blue;
+        cursor: pointer;
+    }
+</style>
 </head>
 <body>
+
+<div class="box" id="loginBox">
     <h2>تسجيل الدخول</h2>
-    <input type="email" id="email" placeholder="الإيميل"><br><br>
-    <input type="password" id="password" placeholder="كلمة السر"><br><br>
-    <button id="loginBtn">دخول</button>
-    <button id="forgotBtn">نسيت كلمة السر</button>
+    <input type="text" id="loginUser" placeholder="اسم المستخدم أو البريد الإلكتروني">
+    <input type="password" id="loginPass" placeholder="كلمة المرور">
+    <button onclick="login()">دخول</button>
+    <a onclick="showRegister()">ليس لديك حساب؟ إنشاء حساب</a>
+    <a onclick="showReset()">نسيت كلمة المرور؟</a>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+<div class="box" id="registerBox" style="display:none;">
+    <h2>إنشاء حساب</h2>
+    <input type="text" id="regUser" placeholder="اسم المستخدم">
+    <input type="email" id="regEmail" placeholder="البريد الإلكتروني">
+    <input type="password" id="regPass" placeholder="كلمة المرور">
+    <button onclick="register()">تسجيل</button>
+    <a onclick="showLogin()">عودة لتسجيل الدخول</a>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBz4UTRffkD9kUH_KoDYP_tHbFfqu2opuA",
-            authDomain: "moqtada-wasafi.firebaseapp.com",
-            projectId: "moqtada-wasafi",
-            storageBucket: "moqtada-wasafi.firebasestorage.app",
-            messagingSenderId: "405020759603",
-            appId: "1:405020759603:web:19fefdf22c7cc46865b546",
-            measurementId: "G-DFKCXSX6G1"
-        };
+<div class="box" id="resetBox" style="display:none;">
+    <h2>إعادة تعيين كلمة المرور</h2>
+    <input type="email" id="resetEmail" placeholder="أدخل بريدك الإلكتروني">
+    <button onclick="resetPassword()">إرسال رابط إعادة التعيين</button>
+    <a onclick="showLogin()">عودة لتسجيل الدخول</a>
+</div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+<script>
+    // إعداد Firebase
+    const firebaseConfig = {
+        apiKey: "ضع_هنا_apiKey",
+        authDomain: "ضع_هنا_authDomain",
+        projectId: "ضع_هنا_projectId",
+        storageBucket: "ضع_هنا_storageBucket",
+        messagingSenderId: "ضع_هنا_senderId",
+        appId: "ضع_هنا_appId"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-        document.getElementById("loginBtn").addEventListener("click", () => {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+    // تسجيل الدخول
+    function login() {
+        let emailOrUser = document.getElementById("loginUser").value;
+        let password = document.getElementById("loginPass").value;
 
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // تسجيل ناجح → تحويل لصفحة الخدمات
-                    window.location.href = "services.html";
-                })
-                .catch((error) => {
-                    alert("خطأ: " + error.message);
-                });
-        });
+        if (!emailOrUser || !password) {
+            alert("املأ جميع الحقول");
+            return;
+        }
 
-        document.getElementById("forgotBtn").addEventListener("click", () => {
-            const email = document.getElementById("email").value;
-            if (!email) {
-                alert("أدخل بريدك الإلكتروني أولاً");
-                return;
-            }
-            sendPasswordResetEmail(auth, email)
-                .then(() => {
-                    alert("تم إرسال رابط إعادة تعيين كلمة السر إلى بريدك");
-                })
-                .catch((error) => {
-                    alert("خطأ: " + error.message);
-                });
-        });
-    </script>
+        // إذا كان فيه @ نعتبره إيميل
+        if (emailOrUser.includes("@")) {
+            auth.signInWithEmailAndPassword(emailOrUser, password)
+                .then(() => window.location.href = "services.html")
+                .catch(err => alert(err.message));
+        } else {
+            alert("سجّل الدخول بالبريد الإلكتروني حاليًا");
+        }
+    }
+
+    // إنشاء حساب
+    function register() {
+        let email = document.getElementById("regEmail").value;
+        let password = document.getElementById("regPass").value;
+        if (!email || !password) {
+            alert("املأ جميع الحقول");
+            return;
+        }
+        auth.createUserWithEmailAndPassword(email, password)
+            .then(() => window.location.href = "services.html")
+            .catch(err => alert(err.message));
+    }
+
+    // إعادة تعيين كلمة المرور
+    function resetPassword() {
+        let email = document.getElementById("resetEmail").value;
+        if (!email) {
+            alert("أدخل بريدك الإلكتروني");
+            return;
+        }
+        auth.sendPasswordResetEmail(email)
+            .then(() => alert("تم إرسال رابط إعادة التعيين إلى بريدك"))
+            .catch(err => alert(err.message));
+    }
+
+    // عرض النماذج
+    function showRegister() {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("registerBox").style.display = "block";
+        document.getElementById("resetBox").style.display = "none";
+    }
+    function showLogin() {
+        document.getElementById("loginBox").style.display = "block";
+        document.getElementById("registerBox").style.display = "none";
+        document.getElementById("resetBox").style.display = "none";
+    }
+    function showReset() {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("registerBox").style.display = "none";
+        document.getElementById("resetBox").style.display = "block";
+    }
+</script>
+
 </body>
 </html>
