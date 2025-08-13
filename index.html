@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
   <meta charset="UTF-8">
   <title>تسجيل دخول / إنشاء حساب</title>
@@ -25,18 +25,19 @@
   <p id="message" style="color:red;"></p>
 
 <script type="module">
-  // 🔹 كود التهيئة من Firebase (استبدله بالكود الخاص بك)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
   import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+  // 🔹 تهيئة Firebase بمشروعك
   const firebaseConfig = {
-    apiKey: "API_KEY",
-    authDomain: "PROJECT_ID.firebaseapp.com",
-    projectId: "PROJECT_ID",
-    storageBucket: "PROJECT_ID.appspot.com",
-    messagingSenderId: "SENDER_ID",
-    appId: "APP_ID"
+    apiKey: "AIzaSyBz4UTRffkD9kUH_KoDYP_tHbFfqu2opuA",
+    authDomain: "moqtada-wasafi.firebaseapp.com",
+    projectId: "moqtada-wasafi",
+    storageBucket: "moqtada-wasafi.firebasestorage.app",
+    messagingSenderId: "405020759603",
+    appId: "1:405020759603:web:19fefdf22c7cc46865b546",
+    measurementId: "G-DFKCXSX6G1"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -49,8 +50,11 @@
     const password = document.getElementById("loginPassword").value;
 
     signInWithEmailAndPassword(auth, email, password)
-      .then(userCredential => {
-        document.getElementById("message").innerText = "تم تسجيل الدخول بنجاح ✅";
+      .then(() => {
+        document.getElementById("message").innerText = "✅ تم تسجيل الدخول بنجاح";
+        setTimeout(() => {
+          window.location.href = "services.html"; // تحويل لصفحة الخدمات
+        }, 1000);
       })
       .catch(error => {
         document.getElementById("message").innerText = error.message;
@@ -64,19 +68,22 @@
     const password = document.getElementById("signupPassword").value;
 
     if (!username) {
-      document.getElementById("message").innerText = "يرجى إدخال اسم المستخدم";
+      document.getElementById("message").innerText = "⚠️ يرجى إدخال اسم المستخدم";
       return;
     }
 
     createUserWithEmailAndPassword(auth, email, password)
-      .then(async userCredential => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
         // تخزين اسم المستخدم في Firestore
         await setDoc(doc(db, "users", user.uid), {
           username: username,
           email: email
         });
-        document.getElementById("message").innerText = "تم إنشاء الحساب بنجاح ✅";
+        document.getElementById("message").innerText = "✅ تم إنشاء الحساب بنجاح";
+        setTimeout(() => {
+          window.location.href = "services.html"; // تحويل لصفحة الخدمات
+        }, 1000);
       })
       .catch(error => {
         document.getElementById("message").innerText = error.message;
