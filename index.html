@@ -1,168 +1,62 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل الدخول</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f2f2f2;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
-    .container {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        width: 300px;
-    }
-    input {
-        width: 100%;
-        padding: 8px;
-        margin: 5px 0;
-    }
-    button {
-        width: 100%;
-        padding: 10px;
-        background: green;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 5px;
-    }
-    a {
-        display: block;
-        text-align: center;
-        margin-top: 10px;
-        color: blue;
-        cursor: pointer;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول</title>
 </head>
 <body>
-
-<div class="container">
     <h2>تسجيل الدخول</h2>
-    <div id="register-section">
-        <input type="text" id="reg-username" placeholder="اسم المستخدم">
-        <input type="email" id="reg-email" placeholder="الإيميل">
-        <input type="password" id="reg-password" placeholder="كلمة السر">
-        <button onclick="register()">إنشاء حساب</button>
-    </div>
-    <hr>
-    <div id="login-section">
-        <input type="text" id="login-username" placeholder="اسم المستخدم">
-        <input type="password" id="login-password" placeholder="كلمة السر">
-        <button onclick="login()">تسجيل دخول</button>
-        <a onclick="resetPassword()">نسيت كلمة السر؟</a>
-    </div>
-</div>
+    <input type="email" id="email" placeholder="الإيميل"><br><br>
+    <input type="password" id="password" placeholder="كلمة السر"><br><br>
+    <button id="loginBtn">دخول</button>
+    <button id="forgotBtn">نسيت كلمة السر</button>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 
-<script>
-    // إعداد Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyBz4UTRffkD9kUH_KoDYP_tHbFfqu2opuA",
-        authDomain: "moqtada-wasafi.firebaseapp.com",
-        projectId: "moqtada-wasafi",
-        storageBucket: "moqtada-wasafi.firebasestorage.app",
-        messagingSenderId: "405020759603",
-        appId: "1:405020759603:web:19fefdf22c7cc46865b546",
-        measurementId: "G-DFKCXSX6G1"
-    };
-    firebase.initializeApp(firebaseConfig);
+        const firebaseConfig = {
+            apiKey: "AIzaSyBz4UTRffkD9kUH_KoDYP_tHbFfqu2opuA",
+            authDomain: "moqtada-wasafi.firebaseapp.com",
+            projectId: "moqtada-wasafi",
+            storageBucket: "moqtada-wasafi.firebasestorage.app",
+            messagingSenderId: "405020759603",
+            appId: "1:405020759603:web:19fefdf22c7cc46865b546",
+            measurementId: "G-DFKCXSX6G1"
+        };
 
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-    // إنشاء حساب جديد
-    function register() {
-        const username = document.getElementById("reg-username").value;
-        const email = document.getElementById("reg-email").value;
-        const password = document.getElementById("reg-password").value;
+        document.getElementById("loginBtn").addEventListener("click", () => {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-        if (!username || !email || !password) {
-            alert("الرجاء ملء جميع الحقول");
-            return;
-        }
-
-        auth.createUserWithEmailAndPassword(email, password)
-        .then(userCredential => {
-            const user = userCredential.user;
-            return db.collection("users").doc(user.uid).set({ username, email });
-        })
-        .then(() => {
-            alert("تم إنشاء الحساب بنجاح");
-        })
-        .catch(error => {
-            alert(error.message);
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // تسجيل ناجح → تحويل لصفحة الخدمات
+                    window.location.href = "services.html";
+                })
+                .catch((error) => {
+                    alert("خطأ: " + error.message);
+                });
         });
-    }
 
-    // تسجيل دخول باليوزر فقط
-    function login() {
-        const username = document.getElementById("login-username").value;
-        const password = document.getElementById("login-password").value;
-
-        if (!username || !password) {
-            alert("الرجاء إدخال اسم المستخدم وكلمة السر");
-            return;
-        }
-
-        // البحث عن الإيميل من قاعدة البيانات باستخدام اليوزر
-        db.collection("users").where("username", "==", username).get()
-        .then(querySnapshot => {
-            if (querySnapshot.empty) {
-                alert("اسم المستخدم غير موجود");
+        document.getElementById("forgotBtn").addEventListener("click", () => {
+            const email = document.getElementById("email").value;
+            if (!email) {
+                alert("أدخل بريدك الإلكتروني أولاً");
                 return;
             }
-            const userData = querySnapshot.docs[0].data();
-            return auth.signInWithEmailAndPassword(userData.email, password);
-        })
-        .then(() => {
-            alert("تم تسجيل الدخول بنجاح");
-            window.location.href = "index.html"; // صفحة الخدمات
-        })
-        .catch(error => {
-            alert(error.message);
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    alert("تم إرسال رابط إعادة تعيين كلمة السر إلى بريدك");
+                })
+                .catch((error) => {
+                    alert("خطأ: " + error.message);
+                });
         });
-    }
-
-    // إعادة تعيين كلمة السر
-    function resetPassword() {
-        const username = document.getElementById("login-username").value;
-
-        if (!username) {
-            alert("أدخل اسم المستخدم أولاً");
-            return;
-        }
-
-        db.collection("users").where("username", "==", username).get()
-        .then(querySnapshot => {
-            if (querySnapshot.empty) {
-                alert("اسم المستخدم غير موجود");
-                return;
-            }
-            const email = querySnapshot.docs[0].data().email;
-            return auth.sendPasswordResetEmail(email);
-        })
-        .then(() => {
-            alert("تم إرسال رابط إعادة تعيين كلمة السر إلى بريدك");
-        })
-        .catch(error => {
-            alert(error.message);
-        });
-    }
-</script>
-
+    </script>
 </body>
 </html>
