@@ -1,171 +1,168 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>تسجيل الدخول / إنشاء حساب</title>
-
-  <!-- Firebase (modular v9) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
-
-  <style>
-    body{font-family:system-ui,Arial;padding:24px;background:#fafafa}
-    .card{max-width:420px;margin:0 auto 24px;background:#fff;padding:20px;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-    h2{margin:0 0 14px}
-    input{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin:8px 0}
-    button{width:100%;padding:12px;border:0;border-radius:12px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.06)}
-    .primary{background:#2563eb;color:#fff}
-    .secondary{background:#f3f4f6}
-    .muted{color:#666;font-size:12px}
-    #msg{margin-top:8px;min-height:20px;color:#e11d48}
-    .ok{color:#059669}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        width: 300px;
+    }
+    input {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+    }
+    button {
+        width: 100%;
+        padding: 10px;
+        background: green;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 5px;
+    }
+    a {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        color: blue;
+        cursor: pointer;
+    }
+</style>
 </head>
 <body>
 
-  <!-- تسجيل الدخول باليوزر + كلمة سر -->
-  <div class="card">
+<div class="container">
     <h2>تسجيل الدخول</h2>
-    <input id="loginUsername" placeholder="اسم المستخدم" />
-    <input id="loginPassword" type="password" placeholder="كلمة المرور" />
-    <button class="primary" onclick="loginByUsername()">دخول</button>
-    <div class="muted" style="margin-top:8px">الدخول يتم باسم المستخدم فقط (الإيميل محفوظ للاسترجاع)</div>
-  </div>
+    <div id="register-section">
+        <input type="text" id="reg-username" placeholder="اسم المستخدم">
+        <input type="email" id="reg-email" placeholder="الإيميل">
+        <input type="password" id="reg-password" placeholder="كلمة السر">
+        <button onclick="register()">إنشاء حساب</button>
+    </div>
+    <hr>
+    <div id="login-section">
+        <input type="text" id="login-username" placeholder="اسم المستخدم">
+        <input type="password" id="login-password" placeholder="كلمة السر">
+        <button onclick="login()">تسجيل دخول</button>
+        <a onclick="resetPassword()">نسيت كلمة السر؟</a>
+    </div>
+</div>
 
-  <!-- إنشاء حساب -->
-  <div class="card">
-    <h2>إنشاء حساب جديد</h2>
-    <input id="signupUsername" placeholder="اسم المستخدم" />
-    <input id="signupEmail" type="email" placeholder="البريد الإلكتروني (Gmail)" />
-    <input id="signupPassword" type="password" placeholder="كلمة المرور" />
-    <button class="secondary" onclick="signup()">تسجيل حساب جديد</button>
-  </div>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js"></script>
 
-  <!-- نسيت كلمة المرور -->
-  <div class="card">
-    <h2>نسيت كلمة المرور؟</h2>
-    <input id="resetEmail" type="email" placeholder="الإيميل (أو اتركه فاضي لو تذكر اليوزر فقط)" />
-    <input id="resetUsername" placeholder="اسم المستخدم (اختياري لو نسيت الإيميل)" />
-    <button onclick="resetPassword()">إرسال رابط إعادة التعيين</button>
-    <div class="muted" style="margin-top:8px">سيرسل Firebase رابط/كود تغيير كلمة السر إلى الإيميل المسجل</div>
-  </div>
+<script>
+    // إعداد Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBz4UTRffkD9kUH_KoDYP_tHbFfqu2opuA",
+        authDomain: "moqtada-wasafi.firebaseapp.com",
+        projectId: "moqtada-wasafi",
+        storageBucket: "moqtada-wasafi.firebasestorage.app",
+        messagingSenderId: "405020759603",
+        appId: "1:405020759603:web:19fefdf22c7cc46865b546",
+        measurementId: "G-DFKCXSX6G1"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-  <div id="msg"></div>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { 
-    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    sendPasswordResetEmail 
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import { 
-    getFirestore, collection, doc, setDoc, query, where, getDocs, serverTimestamp 
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    // إنشاء حساب جديد
+    function register() {
+        const username = document.getElementById("reg-username").value;
+        const email = document.getElementById("reg-email").value;
+        const password = document.getElementById("reg-password").value;
 
-  // تهيئة Firebase بمشروعك
-  const firebaseConfig = {
-    apiKey: "AIzaSyBz4UTRffkD9kUH_KoDYP_tHbFfqu2opuA",
-    authDomain: "moqtada-wasafi.firebaseapp.com",
-    projectId: "moqtada-wasafi",
-    storageBucket: "moqtada-wasafi.firebasestorage.app",
-    messagingSenderId: "405020759603",
-    appId: "1:405020759603:web:19fefdf22c7cc46865b546",
-    measurementId: "G-DFKCXSX6G1"
-  };
+        if (!username || !email || !password) {
+            alert("الرجاء ملء جميع الحقول");
+            return;
+        }
 
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
-
-  const $ = (id) => document.getElementById(id);
-  const setMsg = (t, ok=false) => {
-    const el = $("msg");
-    el.textContent = t;
-    el.className = ok ? "ok" : "";
-  };
-
-  // 🔐 إنشاء حساب: Username + Email + Password (يتأكد من أن اليوزر غير مستخدم)
-  window.signup = async function () {
-    const username = $("signupUsername").value.trim();
-    const email    = $("signupEmail").value.trim();
-    const password = $("signupPassword").value;
-
-    if (!username || !email || !password) return setMsg("رجاءً املأ كل الحقول.");
-
-    try {
-      // تحقق أن اسم المستخدم غير مكرر
-      const q = query(collection(db, "users"), where("username", "==", username));
-      const snap = await getDocs(q);
-      if (!snap.empty) return setMsg("اسم المستخدم مستخدم من قبل، جرّب اسم آخر.");
-
-      // إنشاء مستخدم في Auth
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const uid  = cred.user.uid;
-
-      // حفظ البيانات في Firestore تحت users/{uid}
-      await setDoc(doc(db, "users", uid), {
-        username, email, createdAt: serverTimestamp()
-      });
-
-      setMsg("تم إنشاء الحساب بنجاح ✅، يتم التحويل...", true);
-      setTimeout(()=>{ window.location.href = "services.html"; }, 900);
-    } catch (e) {
-      setMsg(e.message || "حدث خطأ أثناء إنشاء الحساب.");
+        auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            const user = userCredential.user;
+            return db.collection("users").doc(user.uid).set({ username, email });
+        })
+        .then(() => {
+            alert("تم إنشاء الحساب بنجاح");
+        })
+        .catch(error => {
+            alert(error.message);
+        });
     }
-  };
 
-  // 🔑 تسجيل الدخول باليوزر + كلمة سر (نجيب الإيميل من Firestore)
-  window.loginByUsername = async function () {
-    const username = $("loginUsername").value.trim();
-    const password = $("loginPassword").value;
+    // تسجيل دخول باليوزر فقط
+    function login() {
+        const username = document.getElementById("login-username").value;
+        const password = document.getElementById("login-password").value;
 
-    if (!username || !password) return setMsg("أدخل اسم المستخدم وكلمة السر.");
+        if (!username || !password) {
+            alert("الرجاء إدخال اسم المستخدم وكلمة السر");
+            return;
+        }
 
-    try {
-      // ابحث عن الإيميل المرتبط باليوزر
-      const q = query(collection(db, "users"), where("username", "==", username));
-      const snap = await getDocs(q);
-      if (snap.empty) return setMsg("اسم المستخدم غير موجود.");
-
-      // خذ أول نتيجة (يفترض اسم المستخدم فريد)
-      const userDoc = snap.docs[0].data();
-      const email = userDoc.email;
-      if (!email) return setMsg("لا يوجد إيميل مرتبط بهذا المستخدم.");
-
-      await signInWithEmailAndPassword(auth, email, password);
-      setMsg("تم تسجيل الدخول بنجاح ✅، يتم التحويل...", true);
-      setTimeout(()=>{ window.location.href = "services.html"; }, 900);
-    } catch (e) {
-      setMsg(e.message || "تعذر تسجيل الدخول.");
+        // البحث عن الإيميل من قاعدة البيانات باستخدام اليوزر
+        db.collection("users").where("username", "==", username).get()
+        .then(querySnapshot => {
+            if (querySnapshot.empty) {
+                alert("اسم المستخدم غير موجود");
+                return;
+            }
+            const userData = querySnapshot.docs[0].data();
+            return auth.signInWithEmailAndPassword(userData.email, password);
+        })
+        .then(() => {
+            alert("تم تسجيل الدخول بنجاح");
+            window.location.href = "index.html"; // صفحة الخدمات
+        })
+        .catch(error => {
+            alert(error.message);
+        });
     }
-  };
 
-  // ♻️ إعادة تعيين كلمة السر (بإيميل أو بيوزر لتحويله إلى إيميل)
-  window.resetPassword = async function () {
-    const emailInput = $("resetEmail").value.trim();
-    const usernameInput = $("resetUsername").value.trim();
+    // إعادة تعيين كلمة السر
+    function resetPassword() {
+        const username = document.getElementById("login-username").value;
 
-    try {
-      let email = emailInput;
+        if (!username) {
+            alert("أدخل اسم المستخدم أولاً");
+            return;
+        }
 
-      // إذا ماكو إيميل لكن عندك يوزر، جيب الإيميل من Firestore
-      if (!email && usernameInput) {
-        const q = query(collection(db, "users"), where("username", "==", usernameInput));
-        const snap = await getDocs(q);
-        if (snap.empty) return setMsg("ماكو مستخدم بهذا اليوزر. اكتب الإيميل إذا تذكّره.");
-        email = snap.docs[0].data().email;
-      }
-
-      if (!email) return setMsg("اكتب الإيميل أو اليوزر لاسترجاع كلمة السر.");
-
-      await sendPasswordResetEmail(auth, email);
-      setMsg("تم إرسال رابط تغيير كلمة السر إلى بريدك ✅", true);
-    } catch (e) {
-      setMsg(e.message || "تعذر إرسال رابط الاسترجاع.");
+        db.collection("users").where("username", "==", username).get()
+        .then(querySnapshot => {
+            if (querySnapshot.empty) {
+                alert("اسم المستخدم غير موجود");
+                return;
+            }
+            const email = querySnapshot.docs[0].data().email;
+            return auth.sendPasswordResetEmail(email);
+        })
+        .then(() => {
+            alert("تم إرسال رابط إعادة تعيين كلمة السر إلى بريدك");
+        })
+        .catch(error => {
+            alert(error.message);
+        });
     }
-  };
 </script>
+
 </body>
 </html>
