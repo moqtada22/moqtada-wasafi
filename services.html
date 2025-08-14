@@ -1,92 +1,159 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>خدماتكم - لوحة المستخدم</title>
+<title>الخدمات الاحترافية</title>
 <style>
-body { font-family: Arial, sans-serif; background-color: #f8fef8; margin:0; padding:0; }
-header { background-color: #4CAF50; color: white; padding: 15px 0; text-align:center; font-size: 24px; }
-.container { padding: 20px; max-width: 800px; margin:auto; }
-.service-box { background:#fff; border:1px solid #ddd; border-radius:10px; text-align:center; padding:20px; margin-bottom:15px; cursor:pointer; }
-.service-box:hover { background:#e8f5e9; }
-input, select { padding:10px; margin:5px 0; width:100%; border-radius:5px; border:1px solid #ccc; }
-button { padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer; }
-button:hover { background:#45a049; }
-.balance { font-weight:bold; margin-bottom:20px; }
+    body { margin:0; font-family:'Arial', sans-serif; background-color:#e0f7da; }
+    header { display:flex; justify-content:space-between; align-items:center; background-color:#27ae60; padding:12px 20px; color:white; }
+    header h1 { margin:0; font-size:26px; font-weight:bold; }
+    nav a { color:white; text-decoration:none; margin-left:15px; font-weight:bold; }
+    .services { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:20px; padding:20px; }
+    .card { background-color:white; border-radius:15px; padding:20px; text-align:center; box-shadow:0 6px 12px rgba(0,0,0,0.15); transition: transform 0.3s, box-shadow 0.3s; cursor:pointer; position:relative; }
+    .card:hover { transform: translateY(-6px); box-shadow:0 8px 16px rgba(0,0,0,0.2); }
+    .card img { width:70px; height:70px; margin-bottom:10px; }
+    .contact { display:flex; justify-content:center; gap:20px; margin:20px 0; }
+    .contact a { display:inline-block; padding:12px 25px; background-color:#27ae60; color:white; text-decoration:none; border-radius:10px; font-weight:bold; font-size:16px; transition: background 0.3s; }
+    .contact a:hover { background-color:#1e8449; }
+    .cart { background-color:#fff; margin:20px; padding:20px; border-radius:15px; box-shadow:0 6px 12px rgba(0,0,0,0.15); position:fixed; top:90px; right:20px; width:280px; max-height:70vh; overflow-y:auto; transition: transform 0.3s; }
+    .cart h2 { margin-top:0; font-size:20px; }
+    .cart-item { display:flex; justify-content:space-between; margin-bottom:12px; align-items:center; }
+    .cart-item button { background-color:#e74c3c; color:white; border:none; border-radius:6px; cursor:pointer; padding:4px 8px; transition: background 0.3s; }
+    .cart-item button:hover { background-color:#c0392b; }
+    .badge { position:absolute; top:5px; right:5px; background-color:#27ae60; color:white; border-radius:50%; padding:3px 7px; font-size:13px; font-weight:bold; display:none; animation: bounce 0.5s; }
+    @keyframes bounce { 0%{transform:scale(0.5);} 50%{transform:scale(1.2);} 100%{transform:scale(1);} }
+    .toast {
+        position:fixed; bottom:20px; right:20px; background-color:#27ae60; color:white; padding:12px 25px; border-radius:10px; opacity:0; transform:translateY(10px); transition: opacity 0.5s, transform 0.5s;
+        font-size:15px; font-weight:bold;
+    }
+    .toast.show { opacity:1; transform:translateY(0); }
 </style>
 </head>
 <body>
 
-<header>خدماتكم</header>
-<div class="container">
-  <?php
-  session_start();
-  // مثال: مستخدم مسجل دخوله
-  if(!isset($_SESSION['user'])){
-      $_SESSION['user'] = ['id'=>1,'username'=>'testuser','balance'=>50];
-  }
-  $user = $_SESSION['user'];
-  ?>
+<header>
+    <h1>الخدمات</h1>
+    <nav>
+        <a href="https://t.me/vvvvfff_bot">تواصل معنا</a>
+        <a href="#">تسجيل دخول</a>
+    </nav>
+</header>
 
-  <div class="balance">رصيدك الحالي: <span id="user-balance"><?php echo $user['balance']; ?></span> $</div>
-
-  <h2>اختر الخدمة المطلوبة</h2>
-
-  <div class="service-box" onclick="selectService(1,'تيك توك',0.5)">خدمة تيك توك (0.5$/وحدة)</div>
-  <div class="service-box" onclick="selectService(2,'انستغرام',0.7)">خدمة انستغرام (0.7$/وحدة)</div>
-  <div class="service-box" onclick="selectService(3,'فيسبوك',0.4)">خدمة فيسبوك (0.4$/وحدة)</div>
-  <div class="service-box" onclick="selectService(4,'شدات ببجي',1)">شدات ببجي (1$/وحدة)</div>
-
-  <div id="order-form" style="display:none; margin-top:20px;">
-    <h3>إرسال الطلب</h3>
-    <p>الخدمة: <span id="service-name"></span></p>
-    <p>السعر لكل وحدة: $<span id="service-price"></span></p>
-    <label>الكمية:</label>
-    <input type="number" id="quantity" min="1" value="1">
-    <p>السعر الكلي: $<span id="total-price"></span></p>
-    <button onclick="placeOrder()">إرسال الطلب</button>
-    <p id="order-message" style="color:red;"></p>
-  </div>
-
-  <h2>شحن رصيد</h2>
-  <label>المبلغ:</label>
-  <input type="number" id="topup-amount" min="1" value="10">
-  <button onclick="topUp()">شحن الرصيد</button>
+<div class="services">
+    <div class="card" onclick="addToCart('تيك توك', this)">
+        <span class="badge" id="badge-تيك توك">0</span>
+        <img src="https://img.icons8.com/color/96/000000/tiktok.png" alt="تيك توك">
+        <div>تيك توك</div>
+    </div>
+    <div class="card" onclick="addToCart('انستغرام', this)">
+        <span class="badge" id="badge-انستغرام">0</span>
+        <img src="https://img.icons8.com/color/96/000000/instagram-new.png" alt="انستغرام">
+        <div>انستغرام</div>
+    </div>
+    <div class="card" onclick="addToCart('فيسبوك', this)">
+        <span class="badge" id="badge-فيسبوك">0</span>
+        <img src="https://img.icons8.com/color/96/000000/facebook-new.png" alt="فيسبوك">
+        <div>فيسبوك</div>
+    </div>
+    <div class="card" onclick="addToCart('ببجي', this)">
+        <span class="badge" id="badge-ببجي">0</span>
+        <img src="https://img.icons8.com/color/96/000000/pubg.png" alt="ببجي">
+        <div>ببجي</div>
+    </div>
+    <div class="card" onclick="addToCart('لودو', this)">
+        <span class="badge" id="badge-لودو">0</span>
+        <img src="https://img.icons8.com/color/96/000000/ludo.png" alt="لودو">
+        <div>لودو</div>
+    </div>
+    <div class="card" onclick="addToCart('بيس', this)">
+        <span class="badge" id="badge-بيس">0</span>
+        <img src="https://img.icons8.com/color/96/000000/coins.png" alt="بيس">
+        <div>بيس</div>
+    </div>
 </div>
 
+<div class="cart" id="cart">
+    <h2>سلة الطلبات</h2>
+    <div id="cart-items"></div>
+    <button onclick="sendCart()" style="margin-top:10px; padding:12px 25px; background-color:#27ae60; color:white; border:none; border-radius:8px; cursor:pointer; font-size:16px;">إرسال للبوت</button>
+</div>
+
+<div class="contact">
+    <a href="https://t.me/vvvvfff">تليغرام</a>
+    <a href="#">واتساب</a>
+</div>
+
+<div class="toast" id="toast">تم إضافة الخدمة للسلة</div>
+
 <script>
-let currentService = null;
-function selectService(id,name,price){
-  currentService = {id,name,price};
-  document.getElementById('service-name').innerText = name;
-  document.getElementById('service-price').innerText = price;
-  document.getElementById('order-form').style.display='block';
-  updateTotal();
-}
-function updateTotal(){
-  let qty = document.getElementById('quantity').value;
-  let total = qty * currentService.price;
-  document.getElementById('total-price').innerText = total;
-}
-document.getElementById('quantity').addEventListener('input', updateTotal);
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-function placeOrder(){
-  let qty = document.getElementById('quantity').value;
-  let total = qty * currentService.price;
-  let balance = parseFloat(document.getElementById('user-balance').innerText);
-  let msg = document.getElementById('order-message');
-  if(total > balance){
-    msg.innerText = 'رصيدك غير كافي';
-    return;
-  }
-  // خصم الرصيد (يمكن استبدالها بعملية AJAX إلى PHP)
-  document.getElementById('user-balance').innerText = (balance - total).toFixed(2);
-  msg.style.color='green';
-  msg.innerText = 'تم إرسال الطلب!';
+function showToast() {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(()=>{ toast.classList.remove('show'); }, 1500);
 }
 
-function topUp(){
-  let amount = parseFloat(document.getElementById('topup-amount').value);
-  let balance = parseFloat(document.getElementById('user-balance').innerText);
-  document.getElementById('user-balance').innerText = (balance + amount).toFixed(2
+function addToCart(serviceName, cardElement) {
+    let quantity = prompt(`كمية ${serviceName} المطلوبة؟`);
+    if(quantity && !isNaN(quantity)) {
+        let existing = cart.find(item => item.name === serviceName);
+        if(existing) { existing.quantity += parseInt(quantity); }
+        else { cart.push({name: serviceName, quantity: parseInt(quantity)}); }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateBadge(serviceName);
+        renderCart();
+        showToast();
+    } else if(quantity !== null) { alert("يرجى إدخال رقم صالح."); }
+}
+
+function updateBadge(serviceName) {
+    const badge = document.getElementById(`badge-${serviceName}`);
+    let item = cart.find(i => i.name === serviceName);
+    if(item) { badge.style.display='inline'; badge.textContent = item.quantity; }
+    else { badge.style.display='none'; }
+}
+
+function renderCart() {
+    const container = document.getElementById('cart-items');
+    container.innerHTML = '';
+    if(cart.length === 0) { container.innerHTML = '<p>السلة فارغة.</p>'; return; }
+    cart.forEach((item,index) => {
+        let div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `<span>${item.name}: ${item.quantity}</span> <button onclick="removeItem(${index})">حذف</button>`;
+        container.appendChild(div);
+    });
+}
+
+function removeItem(index) {
+    let removed = cart.splice(index,1)[0];
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateBadge(removed.name);
+    renderCart();
+}
+
+function sendCart() {
+    if(cart.length === 0) { alert("السلة فارغة."); return; }
+    if(confirm("هل تريد إرسال الطلب للبوت؟")) {
+        let message = "أريد الطلب:\n" + cart.map(item=>`${item.name}: ${item.quantity}`).join("\n");
+        let telegramUrl = `https://t.me/vvvvfff_bot?start=${encodeURIComponent(message)}`;
+        window.open(telegramUrl,"_blank");
+        cart = [];
+        localStorage.removeItem('cart');
+        document.querySelectorAll('.badge').forEach(b=>b.style.display='none');
+        renderCart();
+    }
+}
+
+// عند تحميل الصفحة، تحديث البطاقات والسلة من التخزين المحلي
+window.onload = function() {
+    cart.forEach(item => updateBadge(item.name));
+    renderCart();
+};
+</script>
+
+</body>
+</html>
