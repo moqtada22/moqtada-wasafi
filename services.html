@@ -1,135 +1,92 @@
-<?php
-// ======= Api Class =======
-class Api {
-    public $api_url = 'https://kd1s.com/api/v2';
-    public $api_key = '348dd4c889fc1e93bfa4a0257ae245a3'; // ضع مفتاحك هنا
-
-    public function order($data) {
-        $post = array_merge(['key'=>$this->api_key,'action'=>'add'],$data);
-        return json_decode((string)$this->connect($post));
-    }
-
-    private function connect($post){
-        $_post = [];
-        foreach($post as $name=>$value){ $_post[] = $name.'='.urlencode($value); }
-        $ch = curl_init($this->api_url);
-        curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-        curl_setopt($ch,CURLOPT_POST,1);
-        curl_setopt($ch,CURLOPT_HEADER,0);
-        curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,0);
-        curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,0);
-        curl_setopt($ch,CURLOPT_FOLLOWLOCATION,true);
-        curl_setopt($ch,CURLOPT_POSTFIELDS,join('&',$_post));
-        curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/4.0');
-        $result = curl_exec($ch);
-        curl_close($ch);
-        return $result;
-    }
-}
-
-// ======= إرسال الطلب عند POST =======
-$orderResult = null;
-if($_SERVER['REQUEST_METHOD']==='POST'){
-    $service = $_POST['service'] ?? '';
-    $link = $_POST['link'] ?? '';
-    $quantity = $_POST['quantity'] ?? 100;
-
-    $api = new Api();
-    $orderResult = $api->order([
-        'service'=>$service,
-        'link'=>$link,
-        'quantity'=>$quantity
-    ]);
-}
-?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>خدماتكم</title>
+<title>خدماتكم - لوحة المستخدم</title>
 <style>
-body{font-family:Arial;margin:0;padding:0;background:#f8fef8;}
-header{background:#4CAF50;color:white;padding:15px;text-align:center;font-size:24px;}
-nav{background:#3e8e41;padding:10px;text-align:center;}
-nav a{color:white;text-decoration:none;margin:0 15px;font-size:16px;}
-.container{padding:20px;max-width:800px;margin:auto;}
-h2{text-align:center;color:#333;}
-.services{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px;}
-.service-box{background:#fff;border:1px solid #ddd;border-radius:10px;text-align:center;padding:20px;transition:0.3s;box-shadow:0 0 10px #eee;}
-.service-box:hover{transform:scale(1.03);box-shadow:0 0 15px #ccc;}
-.service-box a{color:#4CAF50;font-weight:bold;text-decoration:none;cursor:pointer;}
-.contact-buttons{text-align:center;margin-top:40px;}
-.contact-buttons a{display:inline-block;margin:10px;padding:10px 25px;color:white;background:#4CAF50;text-decoration:none;border-radius:8px;font-size:16px;}
+body { font-family: Arial, sans-serif; background-color: #f8fef8; margin:0; padding:0; }
+header { background-color: #4CAF50; color: white; padding: 15px 0; text-align:center; font-size: 24px; }
+.container { padding: 20px; max-width: 800px; margin:auto; }
+.service-box { background:#fff; border:1px solid #ddd; border-radius:10px; text-align:center; padding:20px; margin-bottom:15px; cursor:pointer; }
+.service-box:hover { background:#e8f5e9; }
+input, select { padding:10px; margin:5px 0; width:100%; border-radius:5px; border:1px solid #ccc; }
+button { padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer; }
+button:hover { background:#45a049; }
+.balance { font-weight:bold; margin-bottom:20px; }
 </style>
 </head>
 <body>
 
 <header>خدماتكم</header>
-<nav>
-<a href="login.html">تسجيل دخول</a>
-<a href="contact.html">تواصل معنا</a>
-</nav>
-
 <div class="container">
-<h2>اختر الخدمة المطلوبة</h2>
-<div class="services">
+  <?php
+  session_start();
+  // مثال: مستخدم مسجل دخوله
+  if(!isset($_SESSION['user'])){
+      $_SESSION['user'] = ['id'=>1,'username'=>'testuser','balance'=>50];
+  }
+  $user = $_SESSION['user'];
+  ?>
 
-<div class="service-box">
-  <a onclick="showInfo('تيك توك','فئة A','100','5$','1')">خدمة تيك توك</a>
-</div>
-<div class="service-box">
-  <a onclick="showInfo('انستغرام','فئة B','200','7$','2')">خدمة انستغرام</a>
-</div>
-<div class="service-box">
-  <a onclick="showInfo('فيسبوك','فئة C','150','6$','3')">خدمة فيسبوك</a>
-</div>
-<div class="service-box">
-  <a onclick="showInfo('شدات ببجي','فئة D','50','10$','4')">شدات ببجي</a>
-</div>
-<div class="service-box">
-  <a onclick="showInfo('جواهر لودو','فئة E','120','8$','5')">جواهر لودو</a>
-</div>
-<div class="service-box">
-  <a onclick="showInfo('عملات بيس','فئة F','80','9$','6')">عملات بيس</a>
-</div>
+  <div class="balance">رصيدك الحالي: <span id="user-balance"><?php echo $user['balance']; ?></span> $</div>
 
-</div>
+  <h2>اختر الخدمة المطلوبة</h2>
 
-<div class="contact-buttons">
-<a href="https://t.me/vvvvfff">تواصل تيليگرام</a>
-<a href="#">تواصل واتساب</a>
-</div>
+  <div class="service-box" onclick="selectService(1,'تيك توك',0.5)">خدمة تيك توك (0.5$/وحدة)</div>
+  <div class="service-box" onclick="selectService(2,'انستغرام',0.7)">خدمة انستغرام (0.7$/وحدة)</div>
+  <div class="service-box" onclick="selectService(3,'فيسبوك',0.4)">خدمة فيسبوك (0.4$/وحدة)</div>
+  <div class="service-box" onclick="selectService(4,'شدات ببجي',1)">شدات ببجي (1$/وحدة)</div>
+
+  <div id="order-form" style="display:none; margin-top:20px;">
+    <h3>إرسال الطلب</h3>
+    <p>الخدمة: <span id="service-name"></span></p>
+    <p>السعر لكل وحدة: $<span id="service-price"></span></p>
+    <label>الكمية:</label>
+    <input type="number" id="quantity" min="1" value="1">
+    <p>السعر الكلي: $<span id="total-price"></span></p>
+    <button onclick="placeOrder()">إرسال الطلب</button>
+    <p id="order-message" style="color:red;"></p>
+  </div>
+
+  <h2>شحن رصيد</h2>
+  <label>المبلغ:</label>
+  <input type="number" id="topup-amount" min="1" value="10">
+  <button onclick="topUp()">شحن الرصيد</button>
 </div>
 
 <script>
-function showInfo(name, category, quantity, price, serviceId){
-    let confirmOrder = confirm(
-        'الخدمة: ' + name + '\n' +
-        'الفئة: ' + category + '\n' +
-        'الكمية: ' + quantity + '\n' +
-        'السعر: ' + price + '\n\nهل تريد إرسال الطلب؟'
-    );
-    if(confirmOrder){
-        const formData = new FormData();
-        formData.append('service', serviceId);
-        formData.append('link','http://example.com/test'); // ضع الرابط الصحيح هنا
-        formData.append('quantity',quantity);
-
-        fetch('',{method:'POST',body:formData})
-        .then(res=>res.text())
-        .then(data=>{
-            try{
-                let json = JSON.parse(data);
-                if(json.order) alert('تم إرسال الطلب بنجاح!');
-                else alert('حدث خطأ: '+(json.message||'غير معروف'));
-            }catch(e){
-                alert('حدث خطأ في الاتصال بالخدمة');
-            }
-        });
-    }
+let currentService = null;
+function selectService(id,name,price){
+  currentService = {id,name,price};
+  document.getElementById('service-name').innerText = name;
+  document.getElementById('service-price').innerText = price;
+  document.getElementById('order-form').style.display='block';
+  updateTotal();
 }
-</script>
+function updateTotal(){
+  let qty = document.getElementById('quantity').value;
+  let total = qty * currentService.price;
+  document.getElementById('total-price').innerText = total;
+}
+document.getElementById('quantity').addEventListener('input', updateTotal);
 
-</body>
-</html>
+function placeOrder(){
+  let qty = document.getElementById('quantity').value;
+  let total = qty * currentService.price;
+  let balance = parseFloat(document.getElementById('user-balance').innerText);
+  let msg = document.getElementById('order-message');
+  if(total > balance){
+    msg.innerText = 'رصيدك غير كافي';
+    return;
+  }
+  // خصم الرصيد (يمكن استبدالها بعملية AJAX إلى PHP)
+  document.getElementById('user-balance').innerText = (balance - total).toFixed(2);
+  msg.style.color='green';
+  msg.innerText = 'تم إرسال الطلب!';
+}
+
+function topUp(){
+  let amount = parseFloat(document.getElementById('topup-amount').value);
+  let balance = parseFloat(document.getElementById('user-balance').innerText);
+  document.getElementById('user-balance').innerText = (balance + amount).toFixed(2
