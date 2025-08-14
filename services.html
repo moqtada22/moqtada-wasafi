@@ -70,6 +70,7 @@
       text-decoration: none;
       color: #4CAF50;
       font-weight: bold;
+      cursor: pointer;
     }
 
     .contact-buttons {
@@ -103,22 +104,22 @@
 
   <div class="services">
     <div class="service-box">
-      <a href="https://t.me/vvvvfff_bot">خدمة تيك توك</a>
+      <a data-service="تيك توك">خدمة تيك توك</a>
     </div>
     <div class="service-box">
-      <a href="https://t.me/vvvvfff_bot">خدمة انستغرام</a>
+      <a data-service="انستغرام">خدمة انستغرام</a>
     </div>
     <div class="service-box">
-      <a href="https://t.me/vvvvfff_bot">خدمة فيسبوك</a>
+      <a data-service="فيسبوك">خدمة فيسبوك</a>
     </div>
     <div class="service-box">
-      <a href="https://t.me/vvvvfff_bot">شدات ببجي</a>
+      <a data-service="شدات ببجي">شدات ببجي</a>
     </div>
     <div class="service-box">
-      <a href="https://t.me/vvvvfff_bot">جواهر لودو</a>
+      <a data-service="جواهر لودو">جواهر لودو</a>
     </div>
     <div class="service-box">
-      <a href="https://t.me/vvvvfff_bot">عملات بيس</a>
+      <a data-service="عملات بيس">عملات بيس</a>
     </div>
   </div>
 
@@ -127,6 +128,39 @@
     <a href="#">تواصل واتساب</a> <!-- استبدل الرابط عند توفر الرقم -->
   </div>
 </div>
+
+<script>
+// مفتاح API الخاص بحسابك
+const API_KEY = "348dd4c889fc1e93bfa4a0257ae245a3";
+
+// دالة لإرسال الطلب لكل خدمة
+function sendServiceRequest(serviceName) {
+  fetch(`https://api.damkam.com/send?api_key=${API_KEY}&service=${encodeURIComponent(serviceName)}`)
+    .then(response => response.json())
+    .then(data => {
+      if(data.success){
+        alert(`تم إرسال طلب ${serviceName} بنجاح!`);
+      } else {
+        alert(`حدث خطأ أثناء إرسال الطلب: ${data.message}`);
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      alert("حدث خطأ في الاتصال بالخدمة.");
+    });
+}
+
+// ربط الأزرار بالدوال
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".service-box a").forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const serviceName = e.target.dataset.service;
+      sendServiceRequest(serviceName);
+    });
+  });
+});
+</script>
 
 </body>
 </html>
